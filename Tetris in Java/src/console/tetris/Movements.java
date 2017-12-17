@@ -11,37 +11,39 @@ package console.tetris;
  */
 public class Movements {
 
-    public static void Rotate(Tetrominoe Tetrominoe, ConsoleCanvas canvas) {
-
+    //Behavioral state design pattern, when its rotation depends on its current position
+    //and available rotation actions. at this point is current tetrominoe rotation position
+    // https://www.journaldev.com/1751/state-design-pattern-java
+    public static void rotate(Tetrominoe Tetrominoe, ConsoleCanvas canvas) {
         boolean isRotationAvailable;
         int partOfTetrominoeIn3x3Matrix = 0;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                if (Tetrominoe.grid[i][j] == 2) {
+                if (Tetrominoe.grid(i, j) == 2) {
                     partOfTetrominoeIn3x3Matrix++;
                 }
             }
         }
-        if (Tetrominoe.grid[1][1] == 2 && Tetrominoe.grid[1][2] == 2 && Tetrominoe.grid[2][1] == 2 && Tetrominoe.grid[2][2] == 2) {
+        if (Tetrominoe.grid(1, 1) == 2 && Tetrominoe.grid(1, 2) == 2 && Tetrominoe.grid(2, 1) == 2 && Tetrominoe.grid(2, 2) == 2) {
             partOfTetrominoeIn3x3Matrix = 0;
         }
         Tetrominoe rotated = new Tetrominoe();
-        int MatrixLength = (partOfTetrominoeIn3x3Matrix == 4) ? 3 : Tetrominoe.grid.length;
-        for (int i = 0; i < MatrixLength; i++) {
-            for (int j = 0; j < MatrixLength; j++) {
+        int matrixLength = (partOfTetrominoeIn3x3Matrix == 4) ? 3 : Tetrominoe.length();
+        for (int i = 0; i < matrixLength; i++) {
+            for (int j = 0; j < matrixLength; j++) {
                 if (partOfTetrominoeIn3x3Matrix == 4) {
-                    rotated.grid[i][j] = Tetrominoe.grid[MatrixLength - j - 1][i];
+                    rotated.gridSet(i, j, Tetrominoe.grid(matrixLength - j - 1, i));
                 } else {
-                    rotated.grid[i][j] = Tetrominoe.grid[j][i];
+                    rotated.gridSet(i, j, Tetrominoe.grid(j, i));
                 }
             }
         }
 
         isRotationAvailable = true;
-        for (int i = 0; i < MatrixLength; i++) {
-            for (int j = 0; j < MatrixLength; j++) {
-                if (i + ConsoleTetris.MinoeYpos < canvas.grid.length || ConsoleTetris.MinoeXpos + MatrixLength < 0 || ConsoleTetris.MinoeXpos + MatrixLength > canvas.grid[i].length - 1) {
-                    if (canvas.grid[i + ConsoleTetris.MinoeYpos][j + ConsoleTetris.MinoeXpos] == 1 && rotated.grid[i][j] == 2 && isRotationAvailable == true) {
+        for (int i = 0; i < matrixLength; i++) {
+            for (int j = 0; j < matrixLength; j++) {
+                if (i + ConsoleTetris.minoeYpos() < canvas.length() || ConsoleTetris.minoeXpos() + matrixLength < 0 || ConsoleTetris.minoeXpos() + matrixLength > canvas.length(i) - 1) {
+                    if (canvas.grid(i + ConsoleTetris.minoeYpos(), j + ConsoleTetris.minoeXpos()) == 1 && rotated.grid(i, j) == 2 && isRotationAvailable == true) {
                         isRotationAvailable = false;
                     }
                 } else {
@@ -50,26 +52,26 @@ public class Movements {
             }
         }
         if (isRotationAvailable) {
-            Tetrominoe.grid = rotated.grid;
-            for (int i = 0; i < MatrixLength; i++) {
-                for (int j = 0; j < MatrixLength; j++) {
-                    if (canvas.grid[i + ConsoleTetris.MinoeYpos][j + ConsoleTetris.MinoeXpos] != 1) {
-                        canvas.grid[i + ConsoleTetris.MinoeYpos][j + ConsoleTetris.MinoeXpos] = 0;
-                        canvas.grid[i + ConsoleTetris.MinoeYpos][j + ConsoleTetris.MinoeXpos] = rotated.grid[i][j];
+            Tetrominoe.assignGrid(rotated.fullGrid());// = rotated.grid;
+            for (int i = 0; i < matrixLength; i++) {
+                for (int j = 0; j < matrixLength; j++) {
+                    if (canvas.grid(i + ConsoleTetris.minoeYpos(), j + ConsoleTetris.minoeXpos()) != 1) {
+                        canvas.gridSet(i + ConsoleTetris.minoeYpos(), j + ConsoleTetris.minoeXpos(), 0);
+                        canvas.gridSet(i + ConsoleTetris.minoeYpos(), j + ConsoleTetris.minoeXpos(), rotated.grid(i, j));//) = rotated.grid[i][j];
                     }
                 }
             }
         }
     }
 
-    public static void MoveLeft(ConsoleCanvas canvas) {
+    public static void moveLeft(ConsoleCanvas canvas) {
         boolean isMovementAvailable = true;
-        for (int i = 0; i < canvas.grid.length; i++) {
+        for (int i = 0; i < canvas.length(); i++) {
             if (isMovementAvailable) {
-                for (int j = 0; j < canvas.grid[i].length; j++) {
-                    if (canvas.grid[i][j] == 2 && isMovementAvailable) {
+                for (int j = 0; j < canvas.length(i); j++) {
+                    if (canvas.grid(i, j) == 2 && isMovementAvailable) {
                         if (j > 0) {
-                            if (canvas.grid[i][j - 1] == 1) {
+                            if (canvas.grid(i, j - 1) == 1) {
                                 isMovementAvailable = false;
                             }
                         } else {
@@ -80,26 +82,26 @@ public class Movements {
             }
         }
         if (isMovementAvailable) {
-            for (int i = 0; i < canvas.grid.length; i++) {
-                for (int j = 0; j < canvas.grid[i].length; j++) {
-                    if (canvas.grid[i][j] == 2) {
-                        canvas.grid[i][j] = 0;
-                        canvas.grid[i][j - 1] = 2;
+            for (int i = 0; i < canvas.length(); i++) {
+                for (int j = 0; j < canvas.length(i); j++) {
+                    if (canvas.grid(i, j) == 2) {
+                        canvas.gridSet(i, j, 0);// = 0;
+                        canvas.gridSet(i, j - 1, 2);// = 2;
                     }
                 }
             }
-            ConsoleTetris.MinoeXpos--;
+            ConsoleTetris.setMinoeXpos(ConsoleTetris.minoeXpos() - 1);
         }
     }
 
-    public static void MoveRight(ConsoleCanvas canvas) {
+    public static void moveRight(ConsoleCanvas canvas) {
         boolean isMovementAvailable = true;
-        for (int i = 0; i < canvas.grid.length; i++) {
+        for (int i = 0; i < canvas.length(); i++) {
             if (isMovementAvailable) {
-                for (int j = canvas.grid[i].length - 1; j >= 0; j--) {
-                    if (canvas.grid[i][j] == 2 && isMovementAvailable) {
-                        if (j < canvas.grid[i].length - 1) {
-                            if (canvas.grid[i][j + 1] == 1) {
+                for (int j = canvas.length(i) - 1; j >= 0; j--) {
+                    if (canvas.grid(i, j) == 2 && isMovementAvailable) {
+                        if (j < canvas.length(i) - 1) {
+                            if (canvas.grid(i, j + 1) == 1) {
                                 isMovementAvailable = false;
                             }
                         } else {
@@ -110,23 +112,21 @@ public class Movements {
             }
         }
         if (isMovementAvailable) {
-            for (int i = 0; i < canvas.grid.length; i++) {
-                for (int j = canvas.grid[i].length - 1; j >= 0; j--) {
-                    if (canvas.grid[i][j] == 2) {
-                        canvas.grid[i][j] = 0;
-                        canvas.grid[i][j + 1] = 2;
+            for (int i = 0; i < canvas.length(); i++) {
+                for (int j = canvas.length(i) - 1; j >= 0; j--) {
+                    if (canvas.grid(i, j) == 2) {
+                        canvas.gridSet(i, j, 0);
+                        canvas.gridSet(i, j + 1, 2);
                     }
                 }
             }
-            ConsoleTetris.MinoeXpos++;
+            ConsoleTetris.setMinoeXpos(ConsoleTetris.minoeXpos() + 1);
         }
     }
 
-    public static void Drop(ConsoleCanvas canvas) {
-        /*
-            To Do:
-            • immediate drop
+    public static void drop(ConsoleCanvas canvas) {
+        /* To Do: • immediate
+     * drop
          */
     }
-
 }

@@ -38,40 +38,40 @@ import javafx.scene.text.Text;
  */
 public class CanvasManager extends Application implements EventHandler<KeyEvent> {//, Runnable {
 
-    static GraphicsContext GraphicsContext;
-    public int[][][] Matrix = new int[8][14][2];
-    public int[][] Walls = new int[3][2];
-    ConsoleTetris ConsoleTetris = new ConsoleTetris();
+    static GraphicsContext graphicsContext;
+    public int[][][] matrix = new int[8][14][2];
+    public int[][] walls = new int[3][2];
+    ConsoleTetris consoleTetris = new ConsoleTetris();
     public Canvas canvas = new Canvas();
     Text text = new Text();
 
-    public final Runnable UpdateGUIThread;
-    public final Runnable RunGameThread;
+    public final Runnable updateGUIThread;
+    public final Runnable runGameThread;
 
     public CanvasManager() {
         CanvasManager CanvasManager = this;
 
-        UpdateGUIThread = new Runnable() {
+        updateGUIThread = new Runnable() {
             public void run() {
-                while (!ConsoleTetris.exit) {
+                while (!consoleTetris.exit()) {
                     try {
-                        Update();
+                        update();
                         Thread.sleep(250);
 
                     } catch (InterruptedException ex) {
                         Logger.getLogger(CanvasManager.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                    System.out.println("THREAD2 UPDATE");
+                    //System.out.println("THREAD2 UPDATE");
                 }
             }
         };
 
-        RunGameThread = new Runnable() {
+        runGameThread = new Runnable() {
             public void run() {
-                ConsoleTetris.Start();
-                while (!ConsoleTetris.exit) {
+                consoleTetris.start();
+                while (!consoleTetris.exit()) {
                     try {
-                        ConsoleTetris.Update();
+                        consoleTetris.update();
                     } catch (IOException ex) {
                         Logger.getLogger(CanvasManager.class.getName()).log(Level.SEVERE, null, ex);
                     } catch (InterruptedException ex) {
@@ -95,17 +95,17 @@ public class CanvasManager extends Application implements EventHandler<KeyEvent>
         primaryStage.setTitle("Tetris");
         canvas = new Canvas(400, 600);
         root.getChildren().add(canvas);
-        GraphicsContext = canvas.getGraphicsContext2D();
+        graphicsContext = canvas.getGraphicsContext2D();
         //Scene scene = new Scene(root, 400, 600);
         canvas.setFocusTraversable(true);
         canvas.setOnKeyPressed(this);
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
-        SetUpGrid();
-        ClearScreen();
+        setUpGrid();
+        clearScreen();
 
-        new Thread(this.UpdateGUIThread).start();
-        new Thread(this.RunGameThread).start();
+        new Thread(this.updateGUIThread).start();
+        new Thread(this.runGameThread).start();
         //new Thread(object.threadB).start();
     }
 
@@ -119,15 +119,15 @@ public class CanvasManager extends Application implements EventHandler<KeyEvent>
         KeyCode option = e.getCode();
         System.out.println("CODE: " + option);
         if (option.equals(KeyCode.W)) {
-            Movements.Rotate(currentTetrominoe, ConsoleTetris.canvas);
+            Movements.rotate(currentTetrominoe, consoleTetris.canvas);
         } else if (option.equals(KeyCode.A)) {
-            Movements.MoveLeft(ConsoleTetris.canvas);
+            Movements.moveLeft(consoleTetris.canvas);
         } else if (option.equals(KeyCode.S)) {
-            Movements.Drop(ConsoleTetris.canvas);
+            Movements.drop(consoleTetris.canvas);
         } else if (option.equals(KeyCode.D)) {
-            Movements.MoveRight(ConsoleTetris.canvas);
+            Movements.moveRight(consoleTetris.canvas);
         } else if (option.equals(KeyCode.ESCAPE)) {
-            ConsoleTetris.exit = true;
+            consoleTetris.setExit(true);
         }
     }
 
@@ -135,18 +135,20 @@ public class CanvasManager extends Application implements EventHandler<KeyEvent>
         launch(args);
     }
 
-    public void SetUpGrid() {
+    public void setUpGrid() {
+        int matrixLength = 14;
+        int matrixWidth = 8;
         int offset = 4;
         int length = 36;
         int xPos = offset / 2 + length;
         int yPos = 0;
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < matrixWidth; i++) {
             xPos += offset;
-            for (int j = 0; j < 14; j++) {
+            for (int j = 0; j < matrixLength; j++) {
                 yPos += offset;
-                Matrix[i][j][0] = yPos;
+                matrix[i][j][0] = yPos;
                 yPos += length;
-                Matrix[i][j][1] = xPos;
+                matrix[i][j][1] = xPos;
             }
             xPos += length;
             yPos = 0;
@@ -154,74 +156,78 @@ public class CanvasManager extends Application implements EventHandler<KeyEvent>
 
     }
 
-    public void SetUpWalls() {
-        Color[] GradientPallete = new Color[]{Color.PURPLE, Color.BLUE};
-        Stop[] stops = new Stop[]{new Stop(0, GradientPallete[0]), new Stop(1, GradientPallete[1])};
+    public void setUpWalls() {
+        Color[] gradientPallete = new Color[]{Color.PURPLE, Color.BLUE};
+        Stop[] stops = new Stop[]{new Stop(0, gradientPallete[0]), new Stop(1, gradientPallete[1])};
         double angle = Math.toRadians(45);
         LinearGradient sideWallsColor = new LinearGradient(0, 1, 1, 0, true, CycleMethod.REFLECT, stops);
-        Color bottomColor = GradientPallete[0];
+        Color bottomColor = gradientPallete[0];
         int xLength = 400;
         int yLength = 600;
         int thickness = 36;
-        GraphicsContext.setFill(sideWallsColor);
-        GraphicsContext.fillRoundRect(0, 0, thickness, yLength, 0, 0);
-        GraphicsContext.fillRoundRect(xLength - thickness, 0, thickness, yLength, 0, 0);
-        GraphicsContext.setFill(bottomColor);
-        GraphicsContext.fillRoundRect(0, yLength - thickness, xLength, thickness, 0, 0);
+        graphicsContext.setFill(sideWallsColor);
+        graphicsContext.fillRoundRect(0, 0, thickness, yLength, 0, 0);
+        graphicsContext.fillRoundRect(xLength - thickness, 0, thickness, yLength, 0, 0);
+        graphicsContext.setFill(bottomColor);
+        graphicsContext.fillRoundRect(0, yLength - thickness, xLength, thickness, 0, 0);
 
     }
 
-    public void TestGrid() {
+    public void testGrid() {
 
-        Color[] GradientPallete = new Color[]{Color.BLACK, Color.RED};
-        Stop[] stops = new Stop[]{new Stop(0, GradientPallete[0]), new Stop(1, GradientPallete[1])};
+        int matrixLength = 14;
+        int matrixWidth = 8;
+        Color[] gradientPallete = new Color[]{Color.BLACK, Color.RED};
+        Stop[] stops = new Stop[]{new Stop(0, gradientPallete[0]), new Stop(1, gradientPallete[1])};
         double angle = Math.toRadians(45);
         LinearGradient color = new LinearGradient(0, 1, Math.sin(angle), 0, true, CycleMethod.REFLECT, stops);
-        GraphicsContext.setFill(color);
+        graphicsContext.setFill(color);
         int length = 36;
         int arcLength = 20;
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 14; j++) {
-                GraphicsContext.fillRoundRect(Matrix[i][j][1], Matrix[i][j][0], length, length, arcLength, arcLength);
+        for (int i = 0; i < matrixWidth; i++) {
+            for (int j = 0; j < matrixLength; j++) {
+                graphicsContext.fillRoundRect(matrix[i][j][1], matrix[i][j][0], length, length, arcLength, arcLength);
             }
         }
     }
 
-    public void ClearScreen() {
-        Color[] GradientPallete = new Color[]{Color.BLACK, Color.web("#363d3c")};
-        Stop[] stops = new Stop[]{new Stop(0, GradientPallete[0]), new Stop(1, GradientPallete[1])};
+    public void clearScreen() {
+        Color[] gradientPallete = new Color[]{Color.BLACK, Color.web("#363d3c")};
+        Stop[] stops = new Stop[]{new Stop(0, gradientPallete[0]), new Stop(1, gradientPallete[1])};
         LinearGradient color = new LinearGradient(0, 1, 1, 0, true, CycleMethod.REFLECT, stops);
-        GraphicsContext.setFill(color);
-        GraphicsContext.fillRoundRect(0, 0, 400, 600, 0, 0);
-        SetUpWalls();
+        graphicsContext.setFill(color);
+        graphicsContext.fillRoundRect(0, 0, 400, 600, 0, 0);
+        setUpWalls();
     }
 
-    public void Update() {
+    public void update() {
         int YOffset = 5;
         CanvasManager canvas = this;// new CanvasManager();
-        canvas.ClearScreen();
-        Color[] GradientPallete = new Color[]{Color.BLACK, Color.RED};
-        Stop[] stops = new Stop[]{new Stop(0, GradientPallete[0]), new Stop(1, GradientPallete[1])};
+        canvas.clearScreen();
+        Color[] gradientPallete = new Color[]{Color.BLACK, Color.RED};
+        Stop[] stops = new Stop[]{new Stop(0, gradientPallete[0]), new Stop(1, gradientPallete[1])};
         double angle = Math.toRadians(45);
         LinearGradient color = new LinearGradient(0, 1, Math.sin(angle), 0, true, CycleMethod.REFLECT, stops);
-        GraphicsContext.setFill(color);
+        graphicsContext.setFill(color);
 
         int length = 36;
         int arcLength = 20;
+        int matrixLength = 14;
+        int matrixWidth = 8;
 
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 14; j++) {
-                if (ConsoleTetris.canvas.grid[j + YOffset][i] != 0) {
-                    GraphicsContext.fillRoundRect(Matrix[i][j][1], Matrix[i][j][0], length, length, arcLength, arcLength);
+        for (int i = 0; i < matrixWidth; i++) {
+            for (int j = 0; j < matrixLength; j++) {
+                if (consoleTetris.canvas.grid(j + YOffset, i) != 0) {
+                    graphicsContext.fillRoundRect(matrix[i][j][1], matrix[i][j][0], length, length, arcLength, arcLength);
                 }
             }
         }
-        for (int i = 0; i < 19; i++) {
-            for (int j = 0; j < 8; j++) {
-                System.out.print(ConsoleTetris.canvas.grid[i][j]);
+        for (int i = 0; i < matrixLength + YOffset; i++) {
+            for (int j = 0; j < matrixWidth; j++) {
+                System.out.print(consoleTetris.canvas.grid(i, j));
             }
             //System.out.println("");
         }
-        System.out.println("---------------------");
+        //System.out.println("---------------------");
     }
 }

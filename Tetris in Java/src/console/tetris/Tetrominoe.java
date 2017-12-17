@@ -13,7 +13,7 @@ import java.util.Arrays;
  */
 public class Tetrominoe extends Movements {
 
-    public int[][] grid = new int[4][4]; // for optimization boolean can be used here
+    int[][] grid = new int[4][4]; // for optimization boolean can be used here
 
     public void reset() {
         for (int i = 0; i < grid.length; i++) {
@@ -35,17 +35,17 @@ public class Tetrominoe extends Movements {
 
     public void generate() {
         reset();
-        ReturnNewTetrominoe(NextMinoeNumbGenerator());
+        returnNewTetrominoe(nextMinoeNumbGenerator());
     }
 
-    private int NextMinoeNumbGenerator() {
+    private int nextMinoeNumbGenerator() {
         int minOption = 1;
         int maxOption = 7;
         int range = maxOption - minOption;
         return (int) (Math.random() * range) + minOption;
     }
 
-    private void ReturnNewTetrominoe(int shapeNumb) {
+    private void returnNewTetrominoe(int shapeNumb) {
         switch (shapeNumb) {
             //well yeah, we can set only specific elements here, but personally it is better to see visually who is who
             case 1:
@@ -99,4 +99,29 @@ public class Tetrominoe extends Movements {
                 break;
         }
     }
+
+    public int grid(int x, int y) {
+        return grid[x][y];
+    }
+
+    public void gridSet(int x, int y, int val) {
+        grid[x][y] = val;
+    }
+
+    public int length() {
+        return grid.length;
+    }
+
+    public int length(int yAxis) {
+        return grid[yAxis].length;
+    }
+
+    public int[][] fullGrid() {
+        return grid;
+    }
+
+    public void assignGrid(int[][] grid) {
+        this.grid = grid;
+    }
+
 }
